@@ -15,7 +15,7 @@ def deploy_lottery(entrance_fee=50):
     account = get_account()
     print('Deploying contract...')
     vrf_coordinator = get_contract('vrf_coordinator')
-    subscription_id = create_subscription()
+    subscription_id = config['networks'][network.show_active()]['subscription_id']
     keyhash = config['networks'][network.show_active()]['keyhash']
     interval = 5 # 5 seconds
     # entrance_fee = entry_fee if entry_fee else  # 50USD worth of eth
