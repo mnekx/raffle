@@ -1,4 +1,4 @@
-from brownie import Lottery, network, config
+from brownie import Raffle, network, config
 from scripts.helpful_scripts import get_account, get_contract
 from scripts.vfr_scripts.create_subscription import create_subscription
 
@@ -20,15 +20,15 @@ def deploy_lottery(entrance_fee=50):
     interval = 5 # 5 seconds
     # entrance_fee = entry_fee if entry_fee else  # 50USD worth of eth
     gas_limit = 1000000000
-    eth_usd_feed_address = get_contract('eth_usd').address;
-    lotter_contract = Lottery.deploy(
+    # eth_usd_feed_address = get_contract('eth_usd').address;
+    lotter_contract = Raffle.deploy(
         vrf_coordinator.address, 
         subscription_id,
         keyhash,
         interval,
         entrance_fee,
         gas_limit,
-        eth_usd_feed_address,
+        # eth_usd_feed_address,
         {'from': account}, publish_source=config['networks'][network.show_active()]['verify'])
     print(f'contract deployed at {lotter_contract.address}')
     return lotter_contract
