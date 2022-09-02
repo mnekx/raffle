@@ -1,8 +1,5 @@
-from scripts.deploy_lottery import deploy_lottery
 from scripts.helpful_scripts import (
     LOCAL_BLOCKCHAIN_ENVS,
-    deploy_mocks,
-    fund_with_link,
     get_account,
     get_contract,
     listen_for_event,
@@ -11,9 +8,6 @@ from brownie import network, exceptions, VRFConsumerV2, config
 from brownie.network.gas.strategies import LinearScalingStrategy
 import pytest
 from web3 import Web3
-from brownie.network import gas_price
-
-from scripts.vfr_scripts.create_subscription import create_subscription, fund_subscription
 
 
 def test_can_get_eth_price():
@@ -35,7 +29,7 @@ def test_can_get_entrance_fee(lottery_contract):
     # Arrange
     # Act
     expected_fee = Web3.toWei(0.025, "ether")
-    entrance_fee = lottery_contract.getEntranceFeeInEther()
+    entrance_fee = lottery_contract.getEntranceFee()
     # Assert
     assert expected_fee > entrance_fee
 
@@ -46,22 +40,11 @@ def test_cant_enter_if_not_enough_entry_fee(lottery_contract):
         pytest.skip()
     account = get_account()
     # Act
-    lottery_contract.startNew({"from": account, 'gas_limit': 6721975, 'allow_revert': True})
+    print(lottery_contract.getEntranceFee())
+    # lottery_contract.startNew({"from": account, 'gas_limit': 6721975, 'allow_revert': True})
     # Assert
     with pytest.raises(exceptions.VirtualMachineError):
-        lottery_contract.enter({"from": account, "value": 20, 'gas_limit': 6721975, 'allow_revert': True})
-
-
-def test_cant_enter_if_closed(lottery_contract):
-    # Arrange
-    if network.show_active() in LOCAL_BLOCKCHAIN_ENVS:
-        pytest.skip()
-    account = get_account()
-    # Act
-    # Assert
-    with pytest.raises(exceptions.VirtualMachineError):
-        lottery_contract.enter({"from": account, "value": 50, 'gas_limit': 6721975, 'allow_revert': True})
-
+        lottery_contract.enterRaffle({"from": account, "value": 20, 'gas_limit': 6721975, 'allow_revert': True})
 
 def test_can_enter_lottery(lottery_contract):
     # Arrange
@@ -77,8 +60,8 @@ def test_can_enter_lottery(lottery_contract):
     # lottery_contract.enter({"from": account3, "value": 50})
     players = lottery_contract.getPlayer(0)
     # Assert
-    assert len(players) == 1
-    assert lottery_contract.getState() == 0
+    assert len(players) == 42
+    assert lottery_contract.getRaffleState() == 0
 
 
 def test_can_check_upkeep(lottery_contract):
@@ -88,11 +71,11 @@ def test_can_check_upkeep(lottery_contract):
     account1 = get_account()
     # account2 = get_account(index=2)
     # account3 = get_account(index=3)
-    lottery_contract.startNew({"from": account1})
-    lottery_contract.enter({"from": account1, "value": 50, 'gas_limit': 6721975, 'allow_revert': True})
+    # lottery_contract.startNew({"from": account1})
+    lottery_contract.enterRaffle({"from": account1, "value": 50, 'gas_limit': 6721975, 'allow_revert': True})
     # lottery_contract.enter({"from": account2, "value": 50})
     # lottery_contract.enter({"from": account3, "value": 50})
-    fund_with_link(lottery_contract.address)
+    # fund_with_link(lottery_contract.address)
     upkeep_needed, perform_data = lottery_contract.checkUpkeep("")
     # Assert
     assert isinstance(upkeep_needed, bool)
@@ -104,8 +87,9 @@ def test_can_request_random_number():
         pytest.skip()
     # Arrange
     account = get_account()
-    subscription_id = create_subscription()
-    fund_subscription(subscription_id=subscription_id)
+    # subscription_id = create_subscription()
+    # fund_subscription(subscription_id=subscription_id)
+    subscription_id = config['networks'][network.show_active()]['subscription_id']
     vrf_coordinator = get_contract("vrf_coordinator")
     link_token = get_contract("link_token")
     keyhash = config["networks"][network.show_active()]["keyhash"]
@@ -117,7 +101,7 @@ def test_can_request_random_number():
         {"from": account, "gas_limit": 6721975, "allow_revert": True},
     )
     # Act
-    tx = vrf_consumer.requestRandomWords({"from": account})
+    tx = vrf_consumer.requestRandomWords({"from": account, 'gas_limit': 6721975, 'allow_revert': True})
     tx.wait(1)
     request_id = tx.events[0]["request_id"]
     # Assert
@@ -132,8 +116,7 @@ def test_returns_random_number_testnet():
     # gas_strategy = LinearScalingStrategy("1 gwei", "5000000 gwei", 1.1)
     # gas_price(gas_strategy)
     account = get_account()
-    subscription_id = create_subscription()
-    fund_subscription(subscription_id=subscription_id)
+    subscription_id = config['networks'][network.show_active()]['subscription_id']
     gas_lane = config["networks"][network.show_active()]["keyhash"]
     vrf_coordinator = get_contract("vrf_coordinator")
     link_token = get_contract("link_token")
@@ -150,7 +133,7 @@ def test_returns_random_number_testnet():
     tx.wait(1)
 
     # Act
-    tx = vrf_consumer.requestRandomWords({"from": account})
+    tx = vrf_consumer.requestRandomWords({"from": account, 'gas_limit': 6721975, 'allow_revert': True})
     tx.wait(1)
     event_response = listen_for_event(vrf_consumer, "ReturnedRandomness")
 
