@@ -53,19 +53,6 @@ def test_cant_enter_if_not_enough_entry_fee():
     with pytest.raises(exceptions.VirtualMachineError):
         lottery_contract.enterRaffle({"from": account, "value": 20})
 
-
-# def test_cant_enter_if_closed():
-#     # Arrange
-#     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVS:
-#         pytest.skip()
-#     account = get_account()
-#     lottery_contract = deploy_lottery()
-#     # Act
-#     # Assert
-#     with pytest.raises(exceptions.VirtualMachineError):
-#         lottery_contract.enterRaffle({"from": account, "value": 50})
-
-
 def test_can_enter_lottery():
     # Arrange
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVS:
@@ -104,7 +91,7 @@ def test_can_check_upkeep():
     assert isinstance(perform_data, bytes)
 
 
-def test_can_request_random_number():
+
     if network.show_active() in LOCAL_BLOCKCHAIN_ENVS:
         pytest.skip("Only for testnet testing")
     # Arrange
@@ -127,39 +114,3 @@ def test_can_request_random_number():
     request_id = tx.events[0]["request_id"]
     # Assert
     assert isinstance(request_id, int)
-
-
-def test_returns_random_number_testnet():
-    # Arrange
-    if network.show_active() in LOCAL_BLOCKCHAIN_ENVS:
-        pytest.skip("Only for testnet testing")
-    # # Arrange
-    # gas_strategy = LinearScalingStrategy("1 gwei", "5000000 gwei", 1.1)
-    # gas_price(gas_strategy)
-    account = get_account()
-    subscription_id = create_subscription()
-    fund_subscription(subscription_id=subscription_id)
-    gas_lane = config["networks"][network.show_active()]["keyhash"]
-    vrf_coordinator = get_contract("vrf_coordinator")
-    link_token = get_contract("link_token")
-    vrf_consumer = VRFConsumerV2.deploy(
-        subscription_id,
-        vrf_coordinator,
-        link_token,
-        gas_lane,
-        {"from": account},
-    )
-    tx = vrf_coordinator.addConsumer.transact(
-        subscription_id, vrf_consumer.address, {"from": account, "gas_limit": 6721975, "allow_revert": True}
-    )
-    tx.wait(1)
-
-    # Act
-    tx = vrf_consumer.requestRandomWords({"from": account})
-    tx.wait(1)
-    event_response = listen_for_event(vrf_consumer, "ReturnedRandomness")
-
-    # Assert
-    assert event_response.event is not None
-    assert vrf_consumer.s_randomWords(0) > 0
-    assert vrf_consumer.s_randomWords(1) > 0
