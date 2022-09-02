@@ -55,11 +55,11 @@ def get_contract(contract_name):
             print(f'brownie run scripts/deploy_mocks.py --network {network.show_active()}')
     return contract
 
-def fund_with_link(contract_address, account=None,link_token=None, amount=1000000000000000000):
+def fund_with_link(contract_address, account=None,link_token=None, amount=100000000000000000):
     account = account if account else get_account()
     link_token = link_token if link_token else get_contract('link_token')
     # tx = LinkTokenInterface(link_token.address).transfer(contract_address, amount, {'from': account}) this is without deployment
-    tx = link_token.transferFrom(account, contract_address, amount, {'from': account})
+    tx = link_token.transfer(contract_address, amount, {'from': account, 'gas_limit': 6721975, 'allow_revert': True})
     print(f'Funded 0.1 LINK to address {contract_address}')
     return tx
 
