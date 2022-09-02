@@ -42,11 +42,10 @@ def fund_subscription(subscription_id=1):
     if network.show_active() not in NON_FORKED_LOCAL_BLOCKCHAIN_ENVS:
         link_token = get_contract("link_token")
         vrf_coordinator = get_contract("vrf_coordinator")
-        tx = link_token.transferFrom(
-            account,
+        tx = link_token.transferAndCall(
             vrf_coordinator.address,
             fund_amount,
-            # convert.to_bytes(subscription_id),
+            convert.to_bytes(subscription_id),
             {"from": account, 'gas_limit': 6721975, 'allow_revert': True},
         )
         tx.wait(1)
