@@ -75,7 +75,8 @@ def listen_for_event(brownie_contract, event, timeout=200, poll_interval=2):
         poll_interval ([int]): How often to call your node to check for events.
         Defaults to 2 seconds.
     """
-    web3_contract = web3.eth.contract(
+    Web3.eth.contract
+    web3_contract = Web3.eth.contract(
         address=brownie_contract.address, abi=brownie_contract.abi
     )
     start_time = time.time()
