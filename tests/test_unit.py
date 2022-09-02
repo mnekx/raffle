@@ -36,7 +36,7 @@ def test_can_get_entrance_fee():
     lottery = deploy_lottery()
     # Act
     expected_fee = Web3.toWei(0.025, "ether")
-    entrance_fee = lottery.getEntranceFeeInEther()
+    entrance_fee = lottery.getEntranceFee()
     # Assert
     assert expected_fee > entrance_fee
 
@@ -48,22 +48,22 @@ def test_cant_enter_if_not_enough_entry_fee():
     account = get_account()
     lottery_contract = deploy_lottery()
     # Act
-    lottery_contract.startNew({"from": account})
+    # lottery_contract.startNew({"from": account})
     # Assert
     with pytest.raises(exceptions.VirtualMachineError):
-        lottery_contract.enter({"from": account, "value": 20})
+        lottery_contract.enterRaffle({"from": account, "value": 20})
 
 
-def test_cant_enter_if_closed():
-    # Arrange
-    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVS:
-        pytest.skip()
-    account = get_account()
-    lottery_contract = deploy_lottery()
-    # Act
-    # Assert
-    with pytest.raises(exceptions.VirtualMachineError):
-        lottery_contract.enter({"from": account, "value": 50})
+# def test_cant_enter_if_closed():
+#     # Arrange
+#     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVS:
+#         pytest.skip()
+#     account = get_account()
+#     lottery_contract = deploy_lottery()
+#     # Act
+#     # Assert
+#     with pytest.raises(exceptions.VirtualMachineError):
+#         lottery_contract.enterRaffle({"from": account, "value": 50})
 
 
 def test_can_enter_lottery():
@@ -75,14 +75,14 @@ def test_can_enter_lottery():
     # account3 = get_account(index=3)
     lottery_contract = deploy_lottery()
     # Act
-    lottery_contract.startNew()
-    lottery_contract.enter({"from": account1, "value": 50})
+    # lottery_contract.startNew()
+    lottery_contract.enterRaffle({"from": account1, "value": 50})
     # lottery_contract.enter({"from": account2, "value": 50})
     # lottery_contract.enter({"from": account3, "value": 50})
-    players = lottery_contract.getPlayers()
+    player = lottery_contract.getPlayer(0)
     # Assert
-    assert len(players) == 1
-    assert lottery_contract.getState() == 0
+    assert len(player) == 42
+    assert lottery_contract.getRaffleState() == 0
 
 
 def test_can_check_upkeep():
@@ -93,8 +93,8 @@ def test_can_check_upkeep():
     account1 = get_account()
     # account2 = get_account(index=2)
     # account3 = get_account(index=3)
-    lottery_contract.startNew({"from": account1})
-    lottery_contract.enter({"from": account1, "value": 50})
+    # lottery_contract.startNew({"from": account1})
+    lottery_contract.enterRaffle({"from": account1, "value": 50})
     # lottery_contract.enter({"from": account2, "value": 50})
     # lottery_contract.enter({"from": account3, "value": 50})
     fund_with_link(lottery_contract.address)
@@ -105,8 +105,8 @@ def test_can_check_upkeep():
 
 
 def test_can_request_random_number():
-    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVS:
-        pytest.skip()
+    if network.show_active() in LOCAL_BLOCKCHAIN_ENVS:
+        pytest.skip("Only for testnet testing")
     # Arrange
     account = get_account()
     subscription_id = create_subscription()
