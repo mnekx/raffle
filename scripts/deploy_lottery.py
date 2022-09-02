@@ -34,4 +34,4 @@ def deploy_lottery(entrance_fee=50):
     return lotter_contract
 
 def main():
-    deploy()
+    deploy_lottery()
